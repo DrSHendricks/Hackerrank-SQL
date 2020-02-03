@@ -1,0 +1,17 @@
+select con.contest_id, con.hacker_id, con.name, coalesce(sum(total_submissions),0), coalesce(sum(total_accepted_submissions),0), coalesce(sum(total_views),0), coalesce(sum(total_unique_views),0)
+from Contests as con
+join Colleges as col on con.contest_id=col.contest_id
+join Challenges as cha on col.College_id=cha.College_id
+left join 
+	(select challenge_id, sum(total_views) as total_views, sum(total_unique_views) as total_unique_views from View_Stats 
+	group by challenge_id) as vie
+    on cha.challenge_id=vie.challenge_id
+left join (select challenge_id, sum(total_submissions) as total_submissions, sum(total_accepted_submissions) as total_accepted_submissions from Submission_Stats
+         group by challenge_id) as sub
+		on cha.challenge_id=sub.challenge_id
+group by con.contest_id, con.hacker_id, con.name
+  having sum(total_views)>0 or 
+         sum(total_unique_views)>0 or
+		 sum(total_submissions)>0 or 
+		 sum(total_accepted_submissions)>0
+order by con.contest_id;
